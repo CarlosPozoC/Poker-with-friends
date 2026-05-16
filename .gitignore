@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+backend/dist/
+frontend/.next/
+frontend/out/
+frontend/.next/
+
+# Environment files
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Prisma
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+backend/prisma/migrations/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+backend/tsconfig.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage
+coverage/
+
+# Prisma client (generated)
+backend/node_modules/.prisma/
+backend/node_modules/@prisma/client/
+
+# Redis dump
+dump.rdb
+
+# Cache
+.npm/
+.yarn/
+.pnpm-store/
+
+# Server data
+*.sqlite
+*.db
+backend/uploads/
+backend/logs/
+
+# Build artifacts
+backend/build/
+frontend/.next/cache/
