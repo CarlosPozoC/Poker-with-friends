@@ -14,26 +14,26 @@ type SoundName =
   | 'showdown';
 
 interface SoundDef {
-  file: string;
+  file?: string;
   freq?: number;
   duration?: number;
   type?: OscillatorType;
 }
 
 const SOUND_MAP: Record<SoundName, SoundDef> = {
-  deal: { file: '/sounds/dealing_one_card.wav', freq: 800, duration: 0.08, type: 'sine' },
-  chip: { file: '/sounds/call_raise_allin.mp3', freq: 1200, duration: 0.05, type: 'square' },
-  fold: { file: '/sounds/fold.wav', freq: 300, duration: 0.2, type: 'sawtooth' },
-  check: { file: '/sounds/check.m4a', freq: 600, duration: 0.06, type: 'sine' },
-  call: { file: '/sounds/call_raise_allin.mp3', freq: 500, duration: 0.1, type: 'triangle' },
-  raise: { file: '/sounds/call_raise_allin.mp3', freq: 700, duration: 0.15, type: 'triangle' },
-  allin: { file: '/sounds/call_raise_allin.mp3', freq: 440, duration: 0.35, type: 'sawtooth' },
-  'turn-alert': { file: '/sounds/turn-alert.mp3', freq: 880, duration: 0.15, type: 'sine' },
-  win: { file: '/sounds/win.mp3', freq: 523, duration: 0.4, type: 'sine' },
-  lose: { file: '/sounds/lose.mp3', freq: 200, duration: 0.3, type: 'sine' },
-  bust: { file: '/sounds/bust.mp3', freq: 150, duration: 0.5, type: 'sawtooth' },
-  error: { file: '/sounds/error.mp3', freq: 250, duration: 0.2, type: 'square' },
-  showdown: { file: '/sounds/showdown.mp3', freq: 660, duration: 0.25, type: 'triangle' },
+  deal:   { file: '/sounds/dealing_one_card.wav', freq: 800, duration: 0.08, type: 'sine' },
+  chip:   { file: '/sounds/call_raise_allin.mp3', freq: 1200, duration: 0.05, type: 'square' },
+  fold:   { file: '/sounds/fold.wav', freq: 300, duration: 0.2, type: 'sawtooth' },
+  check:  { file: '/sounds/check.m4a', freq: 600, duration: 0.06, type: 'sine' },
+  call:   { file: '/sounds/call_raise_allin.mp3', freq: 500, duration: 0.1, type: 'triangle' },
+  raise:  { file: '/sounds/call_raise_allin.mp3', freq: 700, duration: 0.15, type: 'triangle' },
+  allin:  { file: '/sounds/call_raise_allin.mp3', freq: 440, duration: 0.35, type: 'sawtooth' },
+  'turn-alert': { freq: 880, duration: 0.15, type: 'sine' },
+  win:    { freq: 523, duration: 0.4, type: 'sine' },
+  lose:   { freq: 200, duration: 0.3, type: 'sine' },
+  bust:   { freq: 150, duration: 0.5, type: 'sawtooth' },
+  error:  { freq: 250, duration: 0.2, type: 'square' },
+  showdown: { freq: 660, duration: 0.25, type: 'triangle' },
 };
 
 const POOL_SIZE = 4;
@@ -41,7 +41,6 @@ const POOL_SIZE = 4;
 export class AudioManager {
   private audioPools: Map<SoundName, HTMLAudioElement[]> = new Map();
   private audioIndices: Map<SoundName, number> = new Map();
-  private blobUrls: Map<SoundName, string> = new Map();
   private audioContext: AudioContext | null = null;
   private _volume: number = 0.7;
   private _muted: boolean = false;
@@ -116,25 +115,20 @@ export class AudioManager {
 
   private async preloadAll(): Promise<void> {
     for (const [name, def] of Object.entries(SOUND_MAP) as [SoundName, SoundDef][]) {
+      if (!def.file) {
+        this.audioPools.set(name, []);
+        this.audioIndices.set(name, 0);
+        continue;
+      }
+
       const pool: HTMLAudioElement[] = [];
       this.audioIndices.set(name, 0);
-
-      let src = def.file;
-      try {
-        const response = await fetch(def.file);
-        if (response.ok) {
-          const blob = await response.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          this.blobUrls.set(name, blobUrl);
-          src = blobUrl;
-        }
-      } catch {}
 
       for (let i = 0; i < POOL_SIZE; i++) {
         const audio = new Audio();
         audio.preload = 'auto';
         audio.volume = this._volume;
-        audio.src = src;
+        audio.src = def.file;
 
         const p = new Promise<void>((resolve) => {
           audio.addEventListener('canplaythrough', () => resolve(), { once: true });
@@ -163,6 +157,12 @@ export class AudioManager {
 
   play(name: SoundName): void {
     if (this._muted) return;
+
+    const pool = this.audioPools.get(name);
+    if (!pool || pool.length === 0) {
+      this.playFallback(name);
+      return;
+    }
 
     const audio = this.getNextAudio(name);
     if (!audio) return;

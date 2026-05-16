@@ -2,10 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Disable Tailwind's dark mode — this poker app is always dark */
-@variant dark (&:is(.never-used-class *));
-
-/* Keep shadcn's custom property overrides but never activate .dark */
 :root {
   --felt-green: #1a6b3c;
   --table-scale: 1;

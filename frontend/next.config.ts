@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['irritably-superjet-frayed.ngrok-free.dev', '*.ngrok-free.dev'],
   async rewrites() {
     return [
       {
